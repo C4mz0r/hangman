@@ -1,3 +1,5 @@
+require 'colorize'
+
 class Hangman
 	
 	def initialize
@@ -5,7 +7,7 @@ class Hangman
 		@MAXWRONGGUESSES = 5
 		@guessed = []
 		@word_to_guess = chooseRandomWord.downcase
-		@word_to_display = "_" * @word_to_guess.length #@word_to_guess.length.times.inject("") { |result| result + "_ " }
+		@word_to_display = "_" * @word_to_guess.length 
 	end
 
 	def gameLoop
@@ -24,11 +26,30 @@ class Hangman
 				puts "You have guessed #{@incorrect_count} / #{@MAXWRONGGUESSES} incorrectly."
 				puts "You have guessed the following letters: #{@guessed}"
 				puts @word_to_display.split("").join(" ")
+				drawGuy
+			end
 
-				# put code here to draw the body				
-				#if (@incorrect_count >= 1)	puts " O "
-				
-				
+			def drawGuy	
+				if (@incorrect_count == 1)
+					puts " O ".colorize(:blue)				
+				elsif (@incorrect_count == 2)
+					puts " O ".colorize(:blue)
+					puts " | ".colorize(:blue)
+				elsif (@incorrect_count == 3)
+					puts " O ".colorize(:blue)
+					puts "-| ".colorize(:blue)
+				elsif (@incorrect_count == 4)
+					puts " O ".colorize(:blue)
+					puts "-|-".colorize(:blue)
+				elsif (@incorrect_count == 5)
+					puts " O ".colorize(:blue)
+					puts "-|-".colorize(:blue)
+					puts "/".colorize(:blue)
+				elsif (@incorrect_count >= 5)
+					puts " O ".colorize(:blue)
+					puts "-|-".colorize(:blue)
+					puts "/ \\".colorize(:blue)
+				end
 			end
 
 			# get a letter from the user
@@ -36,7 +57,6 @@ class Hangman
 				puts "Enter your next guess:"
 				guess = gets.chomp.downcase
 				processGuess(guess)
-				#puts "Now: #{@word_to_display}"
 			end
 
 			# if the word doesn't include the guess, then the incorrect count increases
@@ -66,7 +86,6 @@ class Hangman
 				possibleWord = words[randomWordNumber].chomp
 				break if possibleWord.length >= 5 and possibleWord.length <= 12 and !!(/^[a-zA-Z]+$/ =~ possibleWord)
 			end
-			puts "Debug:  Chose #{possibleWord}"
 			possibleWord
 		end
 
@@ -79,7 +98,6 @@ class Hangman
 					maskedWord[i] = word[i]
 				end
 			end
-			puts "Debug:  Masked word is #{maskedWord}"
 			maskedWord
 		end
 
@@ -93,9 +111,10 @@ class Hangman
 		# game over - let the user know if he/she won or lost
 		def gameOver
 			if won?
-				puts "Congratulations!  You guessed the secret word!"
+				puts "Congratulations!  You guessed the secret word!".colorize(:green)
 			else
-				puts "Oops!  Too bad, you didn't get it this time!  The word we were looking for was #{@word_to_guess}."
+				drawGuy				
+				puts "Oops!  Too bad, you didn't get it this time!  The word we were looking for was #{@word_to_guess}.".colorize(:red)
 			end
 		end
 
