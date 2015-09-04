@@ -1,17 +1,18 @@
 require 'colorize'
+require 'yaml'
 
 class Hangman
-	
+
+  @@MAXWRONGGUESSES = 5	
+
 	def initialize
-		@incorrect_count = 0
-		@MAXWRONGGUESSES = 5
+		@incorrect_count = 0		
 		@guessed = []
 		@word_to_guess = chooseRandomWord.downcase
 		@word_to_display = "_" * @word_to_guess.length 
 	end
 
-	def gameLoop
-		greetings
+	def gameLoop		
 		loop do
 			display
 			getGuess
@@ -23,7 +24,7 @@ class Hangman
 	private
 
 			def display
-				puts "You have guessed #{@incorrect_count} / #{@MAXWRONGGUESSES} incorrectly."
+				puts "You have guessed #{@incorrect_count} / #{@@MAXWRONGGUESSES} incorrectly."
 				puts "You have guessed the following letters: #{@guessed}"
 				puts @word_to_display.split("").join(" ")
 				drawGuy
@@ -50,7 +51,7 @@ class Hangman
 					puts "-|-".colorize(:blue)
 					puts "/ \\".colorize(:blue)
 				end
-			end
+			end			
 
 			# get a letter from the user
 			def getGuess
@@ -62,6 +63,14 @@ class Hangman
 			# if the word doesn't include the guess, then the incorrect count increases
 			# otherwise the word to display to the user gets updated
 			def processGuess(guess)
+				if guess == "save"
+					serialized_object = YAML::dump(self)
+					#DEBUG					
+					puts serialized_object
+					File.open("save.yml", "w") { |file| file.write(serialized_object) }
+					return				
+				end
+
 				if @guessed.include?guess 
 					puts "You already guessed that letter!  Try choosing one that you haven't selected before!"
 					return				
@@ -101,13 +110,6 @@ class Hangman
 			maskedWord
 		end
 
-		# introduction screen
-		def greetings
-			puts "Welcome to Hangman!"
-			puts "A secret word will be chosen and you'll need to guess one letter at a time."
-			puts "You can make up to #{@MAXWRONGGUESSES} mistakes, but after that it's game over!"
-		end
-
 		# game over - let the user know if he/she won or lost
 		def gameOver
 			if won?
@@ -125,12 +127,30 @@ class Hangman
 
 		# check if the user has lost the game (i.e. too many incorrect guesses)
 		def lost?
-			return @incorrect_count > @MAXWRONGGUESSES
+			return @incorrect_count > @@MAXWRONGGUESSES
 		end
+
+    # Class Methods:
+
+		# introduction screen
+		def self.greetings
+			puts "Welcome to Hangman!"
+			puts "A secret word will be chosen and you'll need to guess one letter at a time."
+			puts "You can make up to #{@@MAXWRONGGUESSES} mistakes, but after that it's game over!"
+		end
+
+    # return a deserialized hangman object if specified (nil if not)
+		def self.promptForLoad
+      self.greetings
+		  puts "Would you like to load the saved game? [y/n]"
+	    answer = gets.chomp.downcase
+	    if answer == 'y'		
+		    file = File.open("save.yml", "r")
+		    return YAML.load(file)
+  	  end
+    end
 
 end
 
-
-
-h = Hangman.new
+h = Hangman.promptForLoad || Hangman.new
 h.gameLoop
